@@ -418,7 +418,7 @@ PlotWidget::CurveInfo* PlotWidget::addCurve(const std::string& name, QColor colo
   marker->attach(this);
   marker->setVisible(isXYPlot());
 
-  QwtSymbol* sym = new QwtSymbol(QwtSymbol::Ellipse, Qt::red, QPen(Qt::black), QSize(8, 8));
+  QwtSymbol* sym = new QwtSymbol(QwtSymbol::Ellipse, QBrush(color), QPen(Qt::black), QSize(8, 8));
   marker->setSymbol(sym);
 
   CurveInfo curve_info;
@@ -513,7 +513,7 @@ PlotWidget::CurveInfo *PlotWidget::addCurveXY(std::string name_x, std::string na
   auto marker = new QwtPlotMarker;
   marker->attach(this);
   marker->setVisible(isXYPlot());
-  QwtSymbol* sym = new QwtSymbol(QwtSymbol::Ellipse, Qt::red, QPen(Qt::black), QSize(8, 8));
+  QwtSymbol* sym = new QwtSymbol(QwtSymbol::Ellipse, QBrush(color), QPen(Qt::black), QSize(8, 8));
   marker->setSymbol(sym);
 
   CurveInfo curve_info;
