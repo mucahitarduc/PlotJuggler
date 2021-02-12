@@ -324,6 +324,7 @@ MainWindow::MainWindow(const QCommandLineParser& commandline_parser, QWidget* pa
   _message_parser_factory.insert( {"CBOR", std::make_shared<CBOR_ParserCreator>() });
   _message_parser_factory.insert( {"BSON", std::make_shared<BSON_ParserCreator>() });
   _message_parser_factory.insert( {"MessagePack", std::make_shared<MessagePack_ParserCreator>() });
+  _message_parser_factory.insert( {"MAVLINK", std::make_shared<Mavlink_ParserCreator>() });
 
 }
 

@@ -4,6 +4,10 @@
 #include "nlohmann/json.hpp"
 #include "PlotJuggler/messageparser_base.h"
 #include <QCheckBox>
+#include "mavlink_headers.h"
+#include <stdint.h>
+#include <inttypes.h>
+#include <limits.h>
 
 using namespace PJ;
 
@@ -63,6 +67,36 @@ public:
   {}
 
   bool parseMessage(const MessageRef msg, double timestamp) override;
+};
+
+class Mavlink_Parser: public NlohmannParser
+{
+public:
+  Mavlink_Parser(const std::string& topic_name, PlotDataMapRef& data, bool use_msg_stamp):
+    NlohmannParser(topic_name, data,use_msg_stamp), mavlink_channel_(1)
+  {
+    mavlink_set_proto_version(mavlink_channel_, 2);
+  }
+
+  bool parseMessage(const MessageRef msg, double timestamp) override;
+private:
+  void handleMavlinkMessage(mavlink_message_t* msg, double timestamp);
+  std::string generateArrayFieldName(std::string const& fieldName, unsigned int index) {
+      return fieldName + "[" + std::to_string(index) + "]";
+  }
+
+  std::string generateFieldName(std::string const& messageName, std::string const& fieldName) {
+      return messageName + "." + fieldName;
+  }
+
+  template<class T>
+  void setFieldAndValue(std::string const& field, T const& value, nlohmann::json& j)
+  {
+    j[field.c_str()] = value;
+  }
+
+  int mavlink_channel_;
+  std::string data_;
 };
 
 //------------------------------------------
@@ -134,5 +168,14 @@ public:
   const char* name() const override { return "MessagePack"; }
 };
 
+class Mavlink_ParserCreator : public NlohmannParserCreator
+{
+public:
+
+  MessageParserPtr createInstance(const std::string& topic_name, PlotDataMapRef& data) override {
+    return std::make_shared<Mavlink_Parser>(topic_name, data, _checkbox_use_timestamp->isChecked());
+  }
+  const char* name() const override { return "MAVLINK"; }
+};
 
 #endif // NLOHMANN_PARSERS_H

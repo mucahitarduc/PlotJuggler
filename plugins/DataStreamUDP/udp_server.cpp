@@ -25,6 +25,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 #include <QMessageBox>
 #include <chrono>
 #include <QNetworkDatagram>
+#include <iostream>
 
 #include "ui_udp_server.h"
 
@@ -179,6 +180,12 @@ void UDP_Server::processMessage()
     double timestamp = 1e-6* double( duration_cast<microseconds>(ts).count() );
 
     MessageRef msg ( reinterpret_cast<uint8_t*>(datagram.data().data()), datagram.data().size() );
+
+    qDebug() << datagram.data().size();
+    for (int i=0; i< datagram.data().size(); i++) {
+      std::cout << std::hex << static_cast<int>(15) << std::endl;
+    }
+    std::cout << std::endl;
 
     try {
       std::lock_guard<std::mutex> lock(mutex());

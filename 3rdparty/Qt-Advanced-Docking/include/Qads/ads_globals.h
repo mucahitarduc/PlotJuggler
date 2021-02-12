@@ -62,7 +62,7 @@ QT_FORWARD_DECLARE_CLASS(QAbstractButton)
 
 // Set ADS_DEBUG_LEVEL to enable additional debug output and to enable layout
 // dumps to qDebug and std::cout after layout changes
-#define ADS_DEBUG_LEVEL 0
+#define ADS_DEBUG_LEVEL 1
 
 QT_FORWARD_DECLARE_CLASS(QSplitter)
 
