@@ -81,12 +81,11 @@ bool MessagePack_Parser::parseMessage(const MessageRef msg,
 bool Mavlink_Parser::parseMessage(const MessageRef msg,
                                       double timestamp)
 {
-    data_.append(msg.data(), msg.data() + msg.size());
     bool handled = false;
-    for (auto byte_pos = data_.begin(); byte_pos != data_.end(); ++byte_pos) {
+    for (auto i = 0; i < msg.size(); ++i) {
         mavlink_status_t status_;
         mavlink_message_t msg_;
-        uint8_t decodeState = mavlink_parse_char(mavlink_channel_, *byte_pos, &msg_, &status_);
+        uint8_t decodeState = mavlink_parse_char(mavlink_channel_, msg.data()[i], &msg_, &status_);
 
         if (decodeState == 1) {
             handleMavlinkMessage(&msg_, timestamp);
@@ -97,10 +96,6 @@ bool Mavlink_Parser::parseMessage(const MessageRef msg,
     if (handled == false) {
         return true;
     }
-    _json = nlohmann::json::from_msgpack( msg.data(),
-                                          msg.data() + msg.size() );
-    std::cout <<"Deneme\n";
-    std::cout << data_.c_str() << "\n";
     return parseMessageImpl(timestamp);
 }
 
@@ -108,26 +103,6 @@ void Mavlink_Parser::handleMavlinkMessage(mavlink_message_t* msg, double timesta
     switch (msg->msgid) {
 
     case MAVLINK_MSG_ID_DISTANCE_SENSOR:
-        //processDistanceSensorMessage(msg);
-        break;
-    case MAVLINK_MSG_ID_OPTICAL_FLOW_RAD:
-        //processOpticalFlowMessage(msg);
-        break;
-    case MAVLINK_MSG_ID_LOCAL_POSITION_NED:
-        // Local position message.
-            
-        mavlink_local_position_ned_t localPosition;
-        mavlink_msg_local_position_ned_decode(msg, &localPosition);
-
-        // _json = nlohmann::json{{"time_boot_ms", timestamp}, 
-        //                        {"x", localPosition.x}, 
-        //                        {"y", localPosition.y}, 
-        //                        {"z", localPosition.z}, 
-        //                        {"vx", localPosition.vx}, 
-        //                        {"vy", localPosition.vy}, 
-        //                        {"vz", localPosition.vz}};
-        //processLocalPositionMessage(msg);
-
     default:
         const mavlink_message_info_t* msgInfo = mavlink_get_message_info(msg);
 
@@ -161,7 +136,7 @@ void Mavlink_Parser::handleMavlinkMessage(mavlink_message_t* msg, double timesta
 
                     for (unsigned int j = 0; j < msgInfo->fields[i].array_length; ++j) {
                         std::string const& arrayFieldName = generateArrayFieldName(fieldName, j);
-                        setFieldAndValue<uint8_t>(generateFieldName(messageName, arrayFieldName), nums[j], js_);
+                        setFieldAndValue<uint8_t>(arrayFieldName, nums[j], js_);
 
                         
                     }
@@ -170,7 +145,7 @@ void Mavlink_Parser::handleMavlinkMessage(mavlink_message_t* msg, double timesta
                 else {
                     // Single value
                     uint8_t u = *(m + msgInfo->fields[i].wire_offset);
-                    setFieldAndValue<uint8_t>(generateFieldName(messageName, fieldName), u, js_);
+                    setFieldAndValue<uint8_t>(fieldName, u, js_);
                 }
                 break;
             case MAVLINK_TYPE_INT8_T:
@@ -179,13 +154,13 @@ void Mavlink_Parser::handleMavlinkMessage(mavlink_message_t* msg, double timesta
 
                     for (unsigned int j = 0; j < msgInfo->fields[i].array_length; ++j) {
                         std::string const& arrayFieldName = generateArrayFieldName(fieldName, j);
-                        setFieldAndValue<int8_t>(generateFieldName(messageName, arrayFieldName), nums[j],js_);
+                        setFieldAndValue<int8_t>(arrayFieldName, nums[j],js_);
                     }
                 }
                 else {
                     // Single value
                     int8_t n = *(reinterpret_cast<int8_t*>(m + msgInfo->fields[i].wire_offset));
-                    setFieldAndValue<int8_t>(generateFieldName(messageName, fieldName), n, js_);
+                    setFieldAndValue<int8_t>(fieldName, n, js_);
                 }
                 break;
             case MAVLINK_TYPE_UINT16_T:
@@ -194,13 +169,13 @@ void Mavlink_Parser::handleMavlinkMessage(mavlink_message_t* msg, double timesta
 
                     for (unsigned int j = 0; j < msgInfo->fields[i].array_length; ++j) {
                         std::string const& arrayFieldName = generateArrayFieldName(fieldName, j);
-                        setFieldAndValue<uint16_t>(generateFieldName(messageName, arrayFieldName), nums[j], js_);
+                        setFieldAndValue<uint16_t>(arrayFieldName, nums[j], js_);
                     }
                 }
                 else {
                     // Single value
                     uint16_t n = *(reinterpret_cast<uint16_t*>(m + msgInfo->fields[i].wire_offset));
-                    setFieldAndValue<uint16_t>(generateFieldName(messageName, fieldName), n, js_);
+                    setFieldAndValue<uint16_t>(fieldName, n, js_);
                 }
                 break;
             case MAVLINK_TYPE_INT16_T:
@@ -209,13 +184,13 @@ void Mavlink_Parser::handleMavlinkMessage(mavlink_message_t* msg, double timesta
 
                     for (unsigned int j = 0; j < msgInfo->fields[i].array_length; ++j) {
                         std::string const& arrayFieldName = generateArrayFieldName(fieldName, j);
-                        setFieldAndValue<int16_t>(generateFieldName(messageName, arrayFieldName), nums[j], js_);
+                        setFieldAndValue<int16_t>(arrayFieldName, nums[j], js_);
                     }
                 }
                 else {
                     // Single value
                     int16_t n = *(reinterpret_cast<int16_t*>(m + msgInfo->fields[i].wire_offset));
-                    setFieldAndValue<int16_t>(generateFieldName(messageName, fieldName), n, js_);
+                    setFieldAndValue<int16_t>(fieldName, n, js_);
                 }
                 break;
             case MAVLINK_TYPE_UINT32_T:
@@ -224,13 +199,13 @@ void Mavlink_Parser::handleMavlinkMessage(mavlink_message_t* msg, double timesta
 
                     for (unsigned int j = 0; j < msgInfo->fields[i].array_length; ++j) {
                         std::string const& arrayFieldName = generateArrayFieldName(fieldName, j);
-                        setFieldAndValue<uint32_t>(generateFieldName(messageName, arrayFieldName), nums[j], js_);
+                        setFieldAndValue<uint32_t>(arrayFieldName, nums[j], js_);
                     }
                 }
                 else {
                     // Single value
                     uint32_t n = *(reinterpret_cast<uint32_t*>(m + msgInfo->fields[i].wire_offset));
-                    setFieldAndValue<uint32_t>(generateFieldName(messageName, fieldName), n, js_);
+                    setFieldAndValue<uint32_t>(fieldName, n, js_);
                 }
                 break;
             case MAVLINK_TYPE_INT32_T:
@@ -239,13 +214,13 @@ void Mavlink_Parser::handleMavlinkMessage(mavlink_message_t* msg, double timesta
 
                     for (unsigned int j = 0; j < msgInfo->fields[i].array_length; ++j) {
                         std::string const& arrayFieldName = generateArrayFieldName(fieldName, j);
-                        setFieldAndValue<int32_t>(generateFieldName(messageName, arrayFieldName), nums[j], js_);
+                        setFieldAndValue<int32_t>(arrayFieldName, nums[j], js_);
                     }
                 }
                 else {
                     // Single value
                     int32_t n = *(reinterpret_cast<int32_t*>(m + msgInfo->fields[i].wire_offset));
-                    setFieldAndValue<int32_t>(generateFieldName(messageName, fieldName), n, js_);
+                    setFieldAndValue<int32_t>(fieldName, n, js_);
                 }
                 break;
             case MAVLINK_TYPE_FLOAT:
@@ -254,13 +229,13 @@ void Mavlink_Parser::handleMavlinkMessage(mavlink_message_t* msg, double timesta
 
                     for (unsigned int j = 0; j < msgInfo->fields[i].array_length; ++j) {
                         std::string const& arrayFieldName = generateArrayFieldName(fieldName, j);
-                        setFieldAndValue<float>(generateFieldName(messageName, arrayFieldName), nums[j], js_);
+                        setFieldAndValue<float>(arrayFieldName, nums[j], js_);
                     }
                 }
                 else {
                     // Single value
                     float fv = *(reinterpret_cast<float*>(m + msgInfo->fields[i].wire_offset));
-                    setFieldAndValue<float>(generateFieldName(messageName, fieldName), fv, js_);
+                    setFieldAndValue<float>(fieldName, fv, js_);
                 }
                 break;
             case MAVLINK_TYPE_DOUBLE:
@@ -269,13 +244,13 @@ void Mavlink_Parser::handleMavlinkMessage(mavlink_message_t* msg, double timesta
 
                     for (unsigned int j = 0; j < msgInfo->fields[i].array_length; ++j) {
                         std::string const& arrayFieldName = generateArrayFieldName(fieldName, j);
-                        setFieldAndValue<double>(generateFieldName(messageName, arrayFieldName), nums[j], js_);
+                        setFieldAndValue<double>(arrayFieldName, nums[j], js_);
                     }
                 }
                 else {
                     // Single value
                     double d = *(reinterpret_cast<double*>(m + msgInfo->fields[i].wire_offset));
-                    setFieldAndValue<double>(generateFieldName(messageName, fieldName), d, js_);
+                    setFieldAndValue<double>(fieldName, d, js_);
                 }
                 break;
             case MAVLINK_TYPE_UINT64_T:
@@ -284,13 +259,13 @@ void Mavlink_Parser::handleMavlinkMessage(mavlink_message_t* msg, double timesta
 
                     for (unsigned int j = 0; j < msgInfo->fields[i].array_length; ++j) {
                         std::string const& arrayFieldName = generateArrayFieldName(fieldName, j);
-                        setFieldAndValue<uint64_t>(generateFieldName(messageName, arrayFieldName), nums[j], js_);
+                        setFieldAndValue<uint64_t>(arrayFieldName, nums[j], js_);
                     }
                 }
                 else {
                     // Single value
                     uint64_t n = *(reinterpret_cast<uint64_t*>(m + msgInfo->fields[i].wire_offset));
-                    setFieldAndValue<uint64_t>(generateFieldName(messageName, fieldName), n, js_);
+                    setFieldAndValue<uint64_t>(fieldName, n, js_);
                 }
                 break;
             case MAVLINK_TYPE_INT64_T:
@@ -299,13 +274,13 @@ void Mavlink_Parser::handleMavlinkMessage(mavlink_message_t* msg, double timesta
 
                     for (unsigned int j = 0; j < msgInfo->fields[i].array_length; ++j) {
                         std::string const& arrayFieldName = generateArrayFieldName(fieldName, j);
-                        setFieldAndValue<int64_t>(generateFieldName(messageName, arrayFieldName), nums[j], js_);
+                        setFieldAndValue<int64_t>(arrayFieldName, nums[j], js_);
                     }
                 }
                 else {
                     // Single value
                     int64_t n = *(reinterpret_cast<int64_t*>(m + msgInfo->fields[i].wire_offset));
-                    setFieldAndValue<int64_t>(generateFieldName(messageName, fieldName), n, js_);
+                    setFieldAndValue<int64_t>(fieldName, n, js_);
                 }
                 break;
 

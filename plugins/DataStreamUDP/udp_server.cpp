@@ -182,12 +182,6 @@ void UDP_Server::processMessage()
     QByteArray m = datagram.data();
     MessageRef msg ( reinterpret_cast<uint8_t*>(m.data()), m.count() );    
 
-    qDebug() << datagram.data().size();
-    for (int i=0; i< datagram.data().size(); i++) {
-      std::cout << std::hex << static_cast<int>(15) << std::endl;
-    }
-    std::cout << std::endl;
-
     try {
       std::lock_guard<std::mutex> lock(mutex());
       // important use the mutex to protect any access to the data
