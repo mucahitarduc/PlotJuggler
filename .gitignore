@@ -41,4 +41,7 @@ debian
 # Clion (JetBrains IDE related files and directories)
 .idea
 cmake-build-*
+
 .vscode
+
+installer/io.plotjuggler.application/data
